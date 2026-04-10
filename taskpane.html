@@ -5,156 +5,209 @@
   <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Send to Power Automate</title>
+
+  <!-- Office.js MUST be loaded first -->
   <script src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
+
   <style>
     :root {
       --brand:    #0078d4;
       --brand-dk: #005a9e;
+      --success:  #107c10;
+      --error:    #a4262c;
+      --warn:     #797600;
       --bg:       #f3f2f1;
       --surface:  #ffffff;
       --text:     #201f1e;
       --muted:    #605e5c;
       --border:   #edebe9;
-      --error:    #a4262c;
       --radius:   6px;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
       font-family: "Segoe UI", system-ui, sans-serif;
       font-size: 13px;
       color: var(--text);
       background: var(--bg);
       padding: 16px;
+      min-height: 100vh;
     }
-    header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-    header h1 { font-size: 15px; font-weight: 600; color: var(--brand); }
 
-    .card {
+    header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    header svg { flex-shrink: 0; }
+
+    header h1 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--brand);
+    }
+
+    /* ── Email preview card ─────────────────────── */
+    #emailCard {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 12px 14px;
-      margin-bottom: 12px;
-    }
-    .card-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: baseline; }
-    .card-row:last-child { margin-bottom: 0; }
-    .label {
-      font-size: 11px; font-weight: 600; color: var(--muted);
-      text-transform: uppercase; letter-spacing: .04em; min-width: 52px;
-    }
-    .value { font-size: 13px; color: var(--text); word-break: break-word; }
-
-    .section-title {
-      font-size: 11px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: .04em; color: var(--muted);
-      margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
     }
 
-    /* Checkboxes */
-    .select-all-row {
-      display: none;
-      align-items: center;
+    .card-row {
+      display: flex;
       gap: 6px;
       margin-bottom: 6px;
-      font-size: 12px;
-      color: var(--muted);
-      cursor: pointer;
+      align-items: baseline;
     }
-    .select-all-row input { accent-color: var(--brand); cursor: pointer; }
+    .card-row:last-child { margin-bottom: 0; }
 
-    #attachList { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    .label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      min-width: 52px;
+    }
+
+    .value {
+      font-size: 13px;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    /* ── Attachment list ────────────────────────── */
+    #attachSection {
+      margin-bottom: 14px;
+    }
+
+    #attachSection h2 {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    #attachList {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
     #attachList li {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 7px 10px;
+      padding: 6px 10px;
       display: flex;
       align-items: center;
       gap: 8px;
-      cursor: pointer;
-      transition: border-color .15s, background .15s;
     }
-    #attachList li:hover { border-color: var(--brand); background: #f0f6fd; }
-    #attachList li input[type="checkbox"] {
-      width: 15px; height: 15px;
-      accent-color: var(--brand);
-      cursor: pointer; flex-shrink: 0;
-    }
-    #attachList li label {
-      flex: 1; cursor: pointer;
-      display: flex; align-items: center; gap: 6px; overflow: hidden;
-    }
-    .fname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .fsize { color: var(--muted); font-size: 11px; white-space: nowrap; }
-    .no-attach { color: var(--muted); font-style: italic; font-size: 12px; padding: 4px 0; }
 
-    /* Notes */
-    #notesArea {
-      width: 100%;
-      min-height: 72px;
-      resize: vertical;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 8px 10px;
-      font-family: inherit;
-      font-size: 13px;
-      color: var(--text);
-      background: var(--surface);
-      transition: border-color .15s;
-      line-height: 1.4;
+    #attachList li span.fname {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-    #notesArea:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 2px #deecf9; }
-    #notesArea::placeholder { color: #a19f9d; }
-    .char-count { text-align: right; font-size: 11px; color: var(--muted); margin-top: 3px; }
-    .char-count.over { color: var(--error); }
 
-    /* Button */
+    #attachList li span.fsize {
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .no-attach {
+      color: var(--muted);
+      font-style: italic;
+      font-size: 12px;
+    }
+
+    /* ── Send button ────────────────────────────── */
     #sendBtn {
-      width: 100%; padding: 10px;
-      background: var(--brand); color: #fff;
-      border: none; border-radius: var(--radius);
-      font-size: 14px; font-weight: 600;
+      width: 100%;
+      padding: 10px;
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
       cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
       transition: background .15s;
-      margin-top: 12px; margin-bottom: 12px;
+      margin-bottom: 12px;
     }
+
     #sendBtn:hover:not(:disabled) { background: var(--brand-dk); }
     #sendBtn:disabled { background: #a19f9d; cursor: not-allowed; }
 
-    /* Status */
+    /* ── Status banner ──────────────────────────── */
     #statusBox {
-      border-radius: var(--radius); padding: 10px 12px;
-      font-size: 13px; display: none; align-items: flex-start; gap: 8px;
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      font-size: 13px;
+      display: none;
+      align-items: flex-start;
+      gap: 8px;
     }
-    #statusBox.show { display: flex; }
-    #statusBox.info { background: #deecf9; color: #004578; border: 1px solid #b3d7f2; }
-    #statusBox.ok   { background: #dff6dd; color: #054b16; border: 1px solid #9fd89b; }
-    #statusBox.fail { background: #fde7e9; color: #6e1a20; border: 1px solid #f6b0b5; }
 
+    #statusBox.show  { display: flex; }
+    #statusBox.info  { background: #deecf9; color: #004578; border: 1px solid #b3d7f2; }
+    #statusBox.ok    { background: #dff6dd; color: #054b16; border: 1px solid #9fd89b; }
+    #statusBox.fail  { background: #fde7e9; color: #6e1a20; border: 1px solid #f6b0b5; }
+
+    #statusMsg { line-height: 1.4; }
+
+    /* ── Progress dots ──────────────────────────── */
+    .dots::after {
+      content: '';
+      animation: dots 1.2s steps(3, end) infinite;
+    }
+    @keyframes dots {
+      0%   { content: ''; }
+      33%  { content: '.'; }
+      66%  { content: '..'; }
+      100% { content: '...'; }
+    }
+
+    /* ── Loading skeleton ───────────────────────── */
     .skeleton {
-      background: linear-gradient(90deg,#edebe9 25%,#f3f2f1 50%,#edebe9 75%);
+      background: linear-gradient(90deg, #edebe9 25%, #f3f2f1 50%, #edebe9 75%);
       background-size: 200% 100%;
       animation: shimmer 1.2s infinite;
-      border-radius: 3px; height: 13px; display: inline-block;
+      border-radius: 3px;
+      height: 13px;
+      display: inline-block;
     }
-    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-    .dots::after { content:''; animation: dots 1.2s steps(3,end) infinite; }
-    @keyframes dots { 0%{content:''} 33%{content:'.'} 66%{content:'..'} 100%{content:'...'} }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
   </style>
 </head>
 <body>
 
   <header>
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+    <!-- Lightning bolt icon -->
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="28" height="28" rx="6" fill="#0078d4"/>
       <path d="M16 5L8 16h7l-3 7 11-13h-7l2-5z" fill="#fff"/>
     </svg>
     <h1>Send to Power Automate</h1>
   </header>
 
-  <!-- Email metadata -->
-  <div class="card">
+  <!-- Email preview -->
+  <div id="emailCard">
     <div class="card-row">
       <span class="label">From</span>
       <span class="value" id="metaFrom"><span class="skeleton" style="width:140px"></span></span>
@@ -169,32 +222,15 @@
     </div>
   </div>
 
-  <!-- Attachments with checkboxes -->
-  <div style="margin-bottom:12px">
-    <div class="section-title">
-      <span>Attachments</span>
-      <span id="attachCount" style="font-weight:400"></span>
-    </div>
-    <div class="select-all-row" id="selectAllRow">
-      <input type="checkbox" id="selectAll" checked/>
-      <label for="selectAll">Select / deselect all</label>
-    </div>
+  <!-- Attachments -->
+  <div id="attachSection">
+    <h2>Attachments</h2>
     <ul id="attachList">
       <li><span class="skeleton" style="width:100%"></span></li>
     </ul>
   </div>
 
-  <!-- Notes -->
-  <div>
-    <div class="section-title">
-      Notes
-      <span style="font-weight:400;font-size:11px">(optional)</span>
-    </div>
-    <textarea id="notesArea" maxlength="1000"
-      placeholder="Add a comment or note to include with this email..."></textarea>
-    <div class="char-count"><span id="charCount">0</span> / 1000</div>
-  </div>
-
+  <!-- Action -->
   <button id="sendBtn" disabled>
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
       <path d="M1 1l14 7-14 7V9.5l10-1.5-10-1.5V1z" fill="currentColor"/>
@@ -202,7 +238,10 @@
     Send to Flow
   </button>
 
-  <div id="statusBox"><span id="statusMsg"></span></div>
+  <div id="statusBox">
+    <span id="statusIcon"></span>
+    <span id="statusMsg"></span>
+  </div>
 
   <script src="taskpane.js"></script>
 </body>
