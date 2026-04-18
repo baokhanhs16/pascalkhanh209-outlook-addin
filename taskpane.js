@@ -102,7 +102,7 @@ function buildAttachmentItem(att, cbClass, i) {
   const id = `${cbClass}-${i}`;
   li.innerHTML = `
     <label for="${id}">
-      <input type="checkbox" id="${id}" class="${cbClass}" checked data-id="${escHtml(att.id)}" data-name="${escHtml(att.name)}" data-type="${escHtml(att.contentType || '')}">
+      <input type="checkbox" id="${id}" class="${cbClass}" ${cbClass === 'file-cb' ? 'checked' : ''} data-id="${escHtml(att.id)}" data-name="${escHtml(att.name)}" data-type="${escHtml(att.contentType || '')}">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
         <path d="M3 1h6l3 3v9H3V1z" stroke="#0078d4" stroke-width="1.2" fill="none"/>
         <path d="M9 1v3h3" stroke="#0078d4" stroke-width="1.2"/>
