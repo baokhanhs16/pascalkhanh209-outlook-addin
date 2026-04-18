@@ -1,22 +1,24 @@
 /**
  * Send to Power Automate — Outlook Add-in
  * ─────────────────────────────────────────────────────────────────
- * Replace POWER_AUTOMATE_URL below with your HTTP-trigger URL from
- * Power Automate (When an HTTP request is received → HTTP POST URL).
+ * Requests are proxied through a Cloudflare Worker.
+ * The real Power Automate URL is stored securely as an environment
+ * variable in Cloudflare — never exposed in this source code.
  * ─────────────────────────────────────────────────────────────────
  */
 
-const POWER_AUTOMATE_URL = "https://outlook-addin-proxy.baokhanh3041975.workers.dev";
+const PROXY_URL = "https://outlook-addin-proxy.baokhanh3041975.workers.dev/send";
+const API_KEY   = "Kh@nh@200902";
 
 // ── DOM refs ────────────────────────────────────────────────────
-const sendBtn = document.getElementById("sendBtn");
+const sendBtn   = document.getElementById("sendBtn");
 const statusBox = document.getElementById("statusBox");
 const statusIcon = document.getElementById("statusIcon");
 const statusMsg = document.getElementById("statusMsg");
-const metaFrom = document.getElementById("metaFrom");
+const metaFrom    = document.getElementById("metaFrom");
 const metaSubject = document.getElementById("metaSubject");
-const metaDate = document.getElementById("metaDate");
-const attachList = document.getElementById("attachList");
+const metaDate    = document.getElementById("metaDate");
+const attachList  = document.getElementById("attachList");
 
 // ── Office initialisation ───────────────────────────────────────
 Office.onReady((info) => {
@@ -99,7 +101,7 @@ async function sendToFlow() {
         "info",
         `<span class="dots">Reading attachment ${i + 1}/${fileAttachments.length}: ${escHtml(att.name)}</span>`
       );
-      let content = null;
+      let content  = null;
       let errorMsg = null;
       try {
         content = await getAttachmentContentAsync(att.id);
@@ -110,24 +112,23 @@ async function sendToFlow() {
         name: att.name,
         contentType: att.contentType,
         sizeBytes: att.size,
-        content,          // base64 string, or null on error
+        content,
         error: errorMsg,
       });
     }
 
     // 4. Build final payload
-    const payload = {
-      metadata,
-      htmlBody,
-      attachments,
-    };
+    const payload = { metadata, htmlBody, attachments };
 
-    // 5. POST to Power Automate
+    // 5. POST to Cloudflare Worker proxy
     setStatus("info", '<span class="dots">Sending to Power Automate</span>');
 
-    const response = await fetch(POWER_AUTOMATE_URL, {
+    const response = await fetch(PROXY_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": API_KEY,          // ← authenticates with the Worker
+      },
       body: JSON.stringify(payload),
     });
 
@@ -152,7 +153,7 @@ function buildMetadata(item) {
   return {
     subject: item.subject || "",
     from: {
-      displayName: item.from?.displayName || "",
+      displayName:  item.from?.displayName  || "",
       emailAddress: item.from?.emailAddress || "",
     },
     to: (item.to || []).map(mapRecipient),
@@ -161,7 +162,7 @@ function buildMetadata(item) {
       ? new Date(item.dateTimeCreated).toISOString()
       : null,
     internetMessageId: item.internetMessageId || "",
-    conversationId: item.conversationId || "",
+    conversationId:    item.conversationId    || "",
   };
 }
 
@@ -192,7 +193,6 @@ function getAttachmentContentAsync(attachmentId) {
       { asyncContext: null },
       (result) => {
         if (result.status === Office.AsyncResultStatus.Succeeded) {
-          // result.value.content is base64 for file attachments
           resolve(result.value.content);
         } else {
           reject(new Error(result.error?.message || "Failed to read attachment"));
@@ -203,7 +203,6 @@ function getAttachmentContentAsync(attachmentId) {
 }
 
 function setStatus(type, html) {
-  const icons = { info: "🔄", ok: "✅", fail: "❌" };
   statusBox.className = "show " + { info: "info", ok: "ok", fail: "fail" }[type];
   statusIcon.textContent = "";
   statusMsg.innerHTML = html;
@@ -211,9 +210,9 @@ function setStatus(type, html) {
 
 function formatBytes(bytes) {
   if (!bytes) return "";
-  if (bytes < 1024) return bytes + " B";
-  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
-  return (bytes / 1048576).toFixed(1) + " MB";
+  if (bytes < 1024)    return bytes + " B";
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1)    + " KB";
+  return                      (bytes / 1048576).toFixed(1) + " MB";
 }
 
 function escHtml(str) {
