@@ -8,7 +8,7 @@
  */
 
 const PROXY_URL = "https://outlook-addin-proxy.baokhanh3041975.workers.dev/send";
-const API_KEY   = "Kh@nh@200902";
+const API_KEY   = "KhanhProxy2090";
 
 // ── DOM refs ────────────────────────────────────────────────────
 const sendBtn   = document.getElementById("sendBtn");
