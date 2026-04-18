@@ -5,17 +5,13 @@
   <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Send to Power Automate</title>
-
-  <!-- Office.js MUST be loaded first -->
   <script src="https://appsforoffice.microsoft.com/lib/1.1/hosted/office.js"></script>
-
   <style>
     :root {
       --brand:    #0078d4;
       --brand-dk: #005a9e;
       --success:  #107c10;
       --error:    #a4262c;
-      --warn:     #797600;
       --bg:       #f3f2f1;
       --surface:  #ffffff;
       --text:     #201f1e;
@@ -41,16 +37,19 @@
       gap: 10px;
       margin-bottom: 16px;
     }
+    header h1 { font-size: 15px; font-weight: 600; color: var(--brand); }
 
-    header svg { flex-shrink: 0; }
-
-    header h1 {
-      font-size: 15px;
+    /* ── Section titles ─────────────────────────────────────────── */
+    .section-title {
+      font-size: 11px;
       font-weight: 600;
-      color: var(--brand);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--muted);
+      margin-bottom: 6px;
     }
 
-    /* ── Email preview card ─────────────────────── */
+    /* ── Email card ─────────────────────────────────────────────── */
     #emailCard {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -58,52 +57,34 @@
       padding: 12px 14px;
       margin-bottom: 14px;
     }
-
-    .card-row {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 6px;
-      align-items: baseline;
-    }
+    .card-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: baseline; }
     .card-row:last-child { margin-bottom: 0; }
+    .label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; min-width: 52px; }
+    .value { font-size: 13px; color: var(--text); word-break: break-word; }
 
-    .label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .04em;
-      min-width: 52px;
-    }
+    /* ── Section block ──────────────────────────────────────────── */
+    .section { margin-bottom: 14px; }
 
-    .value {
-      font-size: 13px;
-      color: var(--text);
-      word-break: break-word;
-    }
-
-    /* ── Attachment list ────────────────────────── */
-    #attachSection {
-      margin-bottom: 14px;
-    }
-
-    #attachSection h2 {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-
-    #attachList {
-      list-style: none;
+    /* ── Attachment list ────────────────────────────────────────── */
+    .attach-controls {
       display: flex;
-      flex-direction: column;
-      gap: 4px;
+      gap: 8px;
+      margin-bottom: 6px;
+      align-items: center;
     }
+    .link-btn {
+      font-size: 11px;
+      color: var(--brand);
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      text-decoration: underline;
+    }
+    .link-btn:hover { color: var(--brand-dk); }
 
-    #attachList li {
+    .attach-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    .attach-list li {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -112,27 +93,79 @@
       align-items: center;
       gap: 8px;
     }
+    .attach-list li label { display: flex; align-items: center; gap: 8px; flex: 1; cursor: pointer; min-width: 0; }
+    .attach-list li .fname { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .attach-list li .fsize { color: var(--muted); font-size: 11px; white-space: nowrap; }
+    .no-attach { color: var(--muted); font-style: italic; font-size: 12px; padding: 4px 0; }
 
-    #attachList li span.fname {
-      flex: 1;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+    /* ── Collapsible dropdown ───────────────────────────────────── */
+    .collapsible-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      cursor: pointer;
+      user-select: none;
+      margin-bottom: 0;
     }
-
-    #attachList li span.fsize {
+    .collapsible-header:hover { background: #f9f8f7; }
+    .collapsible-header .chevron {
+      transition: transform 0.2s;
       color: var(--muted);
+      font-size: 10px;
+    }
+    .collapsible-header.open .chevron { transform: rotate(180deg); }
+    .collapsible-body {
+      display: none;
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 var(--radius) var(--radius);
+      background: var(--surface);
+      padding: 8px 10px;
+    }
+    .collapsible-body.open { display: block; }
+    .collapsible-header .img-count {
       font-size: 11px;
-      white-space: nowrap;
+      background: var(--brand);
+      color: #fff;
+      border-radius: 10px;
+      padding: 1px 7px;
+      margin-left: 6px;
     }
 
-    .no-attach {
-      color: var(--muted);
-      font-style: italic;
-      font-size: 12px;
+    /* ── Comment box ────────────────────────────────────────────── */
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 10px;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--text);
+      resize: vertical;
+      min-height: 70px;
+      background: var(--surface);
     }
+    textarea:focus { outline: 2px solid var(--brand); border-color: transparent; }
 
-    /* ── Send button ────────────────────────────── */
+    /* ── Function select ────────────────────────────────────────── */
+    select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 10px;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--text);
+      background: var(--surface);
+      cursor: pointer;
+    }
+    select:focus { outline: 2px solid var(--brand); border-color: transparent; }
+
+    /* ── Send button ────────────────────────────────────────────── */
     #sendBtn {
       width: 100%;
       padding: 10px;
@@ -150,11 +183,10 @@
       transition: background .15s;
       margin-bottom: 12px;
     }
-
     #sendBtn:hover:not(:disabled) { background: var(--brand-dk); }
     #sendBtn:disabled { background: #a19f9d; cursor: not-allowed; }
 
-    /* ── Status banner ──────────────────────────── */
+    /* ── Status banner ──────────────────────────────────────────── */
     #statusBox {
       border-radius: var(--radius);
       padding: 10px 12px;
@@ -163,27 +195,68 @@
       align-items: flex-start;
       gap: 8px;
     }
-
     #statusBox.show  { display: flex; }
     #statusBox.info  { background: #deecf9; color: #004578; border: 1px solid #b3d7f2; }
     #statusBox.ok    { background: #dff6dd; color: #054b16; border: 1px solid #9fd89b; }
     #statusBox.fail  { background: #fde7e9; color: #6e1a20; border: 1px solid #f6b0b5; }
-
     #statusMsg { line-height: 1.4; }
 
-    /* ── Progress dots ──────────────────────────── */
-    .dots::after {
-      content: '';
-      animation: dots 1.2s steps(3, end) infinite;
+    /* ── Password Modal ─────────────────────────────────────────── */
+    #pwOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
     }
-    @keyframes dots {
-      0%   { content: ''; }
-      33%  { content: '.'; }
-      66%  { content: '..'; }
-      100% { content: '...'; }
+    #pwOverlay.show { display: flex; }
+    #pwModal {
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 24px 20px 20px;
+      width: 280px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
     }
+    #pwModal h2 { font-size: 15px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+    #pwModal p  { font-size: 12px; color: var(--muted); margin-bottom: 14px; line-height: 1.4; }
+    #pwInput {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 10px;
+      font-size: 14px;
+      margin-bottom: 6px;
+      font-family: inherit;
+    }
+    #pwInput:focus { outline: 2px solid var(--brand); border-color: transparent; }
+    #pwError { font-size: 12px; color: var(--error); min-height: 16px; margin-bottom: 10px; }
+    .pw-actions { display: flex; gap: 8px; }
+    #pwSubmit {
+      flex: 1;
+      padding: 9px;
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #pwSubmit:hover { background: var(--brand-dk); }
+    #pwCancel {
+      padding: 9px 14px;
+      background: none;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+      cursor: pointer;
+    }
+    #pwCancel:hover { background: var(--bg); }
 
-    /* ── Loading skeleton ───────────────────────── */
+    /* ── Skeleton ───────────────────────────────────────────────── */
     .skeleton {
       background: linear-gradient(90deg, #edebe9 25%, #f3f2f1 50%, #edebe9 75%);
       background-size: 200% 100%;
@@ -193,13 +266,18 @@
       display: inline-block;
     }
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    .dots::after {
+      content: '';
+      animation: dots 1.2s steps(3, end) infinite;
+    }
+    @keyframes dots { 0% { content:''; } 33% { content:'.'; } 66% { content:'..'; } 100% { content:'...'; } }
   </style>
 </head>
 <body>
 
   <header>
-    <!-- Lightning bolt icon -->
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
       <rect width="28" height="28" rx="6" fill="#0078d4"/>
       <path d="M16 5L8 16h7l-3 7 11-13h-7l2-5z" fill="#fff"/>
     </svg>
@@ -222,15 +300,60 @@
     </div>
   </div>
 
-  <!-- Attachments -->
-  <div id="attachSection">
-    <h2>Attachments</h2>
-    <ul id="attachList">
+  <!-- File Attachments -->
+  <div class="section" id="fileSection">
+    <div class="section-title">File Attachments</div>
+    <div class="attach-controls" id="fileControls" style="display:none">
+      <button class="link-btn" id="selectAllFiles">Select All</button>
+      <span style="color:var(--border)">|</span>
+      <button class="link-btn" id="deselectAllFiles">Deselect All</button>
+    </div>
+    <ul class="attach-list" id="fileList">
       <li><span class="skeleton" style="width:100%"></span></li>
     </ul>
   </div>
 
-  <!-- Action -->
+  <!-- Image Attachments (collapsible) -->
+  <div class="section" id="imageSection" style="display:none">
+    <div class="section-title">Image Attachments</div>
+    <div class="collapsible-header" id="imgToggle">
+      <span>
+        Images in this email
+        <span class="img-count" id="imgCount">0</span>
+      </span>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="collapsible-body" id="imgBody">
+      <div class="attach-controls">
+        <button class="link-btn" id="selectAllImgs">Select All</button>
+        <span style="color:var(--border)">|</span>
+        <button class="link-btn" id="deselectAllImgs">Deselect All</button>
+      </div>
+      <ul class="attach-list" id="imgList"></ul>
+    </div>
+  </div>
+
+  <!-- Function selector -->
+  <div class="section">
+    <div class="section-title">Action for Power Automate</div>
+    <select id="paFunction">
+      <option value="">— Select an action —</option>
+      <option value="save_sharepoint">📁  Save to SharePoint</option>
+      <option value="notify_teams">💬  Send notification to Teams</option>
+      <option value="create_task">✅  Create a Task in Planner</option>
+      <option value="log_excel">📊  Log to Excel</option>
+      <option value="forward_manager">📤  Forward to Manager</option>
+      <option value="archive_email">🗄️  Archive Email</option>
+    </select>
+  </div>
+
+  <!-- Comment box -->
+  <div class="section">
+    <div class="section-title">Comment / Note</div>
+    <textarea id="commentBox" placeholder="Add a comment or note to send along with this email…"></textarea>
+  </div>
+
+  <!-- Send -->
   <button id="sendBtn" disabled>
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
       <path d="M1 1l14 7-14 7V9.5l10-1.5-10-1.5V1z" fill="currentColor"/>
@@ -241,6 +364,20 @@
   <div id="statusBox">
     <span id="statusIcon"></span>
     <span id="statusMsg"></span>
+  </div>
+
+  <!-- Password Modal -->
+  <div id="pwOverlay">
+    <div id="pwModal">
+      <h2>🔒 Enter Password</h2>
+      <p>Enter the authorisation password to send this email to Power Automate.</p>
+      <input type="password" id="pwInput" placeholder="Password" autocomplete="off"/>
+      <div id="pwError"></div>
+      <div class="pw-actions">
+        <button id="pwSubmit">Confirm &amp; Send</button>
+        <button id="pwCancel">Cancel</button>
+      </div>
+    </div>
   </div>
 
   <script src="taskpane.js"></script>
