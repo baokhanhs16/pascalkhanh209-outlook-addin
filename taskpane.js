@@ -6,7 +6,7 @@
  * ─────────────────────────────────────────────────────────────────
  */
 
-const POWER_AUTOMATE_URL = "https://defaultfac31a4a31d74bfa8f95dc3432fb68.48.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f329136f04bb45b1907ccd79f40285b7/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=QNYfLxIX3JJmo_UasCXnUB07f6RN677x7fkr8vKopdQ";
+const POWER_AUTOMATE_URL = "https://outlook-addin-proxy.baokhanh3041975.workers.dev";
 
 // ── DOM refs ────────────────────────────────────────────────────
 const sendBtn = document.getElementById("sendBtn");
