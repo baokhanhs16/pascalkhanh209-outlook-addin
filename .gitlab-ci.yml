@@ -1,0 +1,15 @@
+# GitLab Pages — hosts your Outlook Add-in files
+pages:
+  stage: deploy
+  script:
+    - mkdir -p public
+    - cp taskpane.html public/
+    - cp taskpane.js public/
+    - cp commands.html public/
+    - cp manifest.xml public/
+    - cp -r assets public/ 2>/dev/null || true
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
